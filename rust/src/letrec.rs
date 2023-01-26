@@ -2,7 +2,6 @@
 // --- TYPES ---
 type Identifier = Box<str>;  // "String" is mutable, "str" has no predefined size, and "&str" needs a lifetime. So, Box<str> it is.
 
-#[derive(Clone)]
 pub enum Expression {
     
     ConstExp { num: i32 },
@@ -131,7 +130,7 @@ impl Semantics for Expression {
                 Ok(ExpVal::NumVal { val: *num }),
             Expression::VarExp { var } => 
                 match env.lookup(var) {
-                    Ok(denval) => Ok(denval),  // FIXME: Probably need a Copy trait on ExpVal, but ooooffff.
+                    Ok(denval) => Ok(denval),  // FIXME: Probably need a Copy trait on ExpVal, but ooooffff. 
                     //Ok(denval) => Ok(ExpVal::NumVal { val: 0 }),
                     Err(msg) => Err(msg),
                 },

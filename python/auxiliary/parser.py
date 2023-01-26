@@ -1,7 +1,7 @@
 """
-A parser for LETREC and part of INFERRED.
+A parser for INFERRED.
 
-TODO: extend to other languages.
+TODO: parse SetExp.
 
 Author: Thomas Bauwens
 Date: 2023-01-24
@@ -136,10 +136,10 @@ def parse(lexed: list) -> Expression:
         val_body = nextGroup(lexed, IN)
         let_body = lexed
 
-        final_exp = LetExp(var,
-            parse(val_body),
-            parse(let_body)
-        )
+        if typed:
+            final_exp = LetExpTyped(var, parse(val_body), parse(let_body))
+        else:
+            final_exp = LetExp(var, parse(val_body), parse(let_body))
 
     elif head == LETREC:
         if typed:
@@ -167,11 +167,18 @@ def parse(lexed: list) -> Expression:
         then_body = nextGroup(lexed, ELSE)
         else_body = lexed
 
-        final_exp = IfExp(
-            parse(condition),
-            parse(then_body),
-            parse(else_body)
-        )
+        if typed:
+            final_exp = IfExpTyped(
+                parse(condition),
+                parse(then_body),
+                parse(else_body)
+            )
+        else:
+            final_exp = IfExp(
+                parse(condition),
+                parse(then_body),
+                parse(else_body)
+            )
 
     elif head == MINUS:
         lexed.pop(0)  # (
@@ -179,36 +186,54 @@ def parse(lexed: list) -> Expression:
         diff1_body = nextGroup(lexed, COMMA)
         diff2_body = nextGroup(lexed, RIGHT)
 
-        final_exp = DiffExp(
-            parse(diff1_body),
-            parse(diff2_body)
-        )
+        if typed:
+            final_exp = DiffExpTyped(
+                parse(diff1_body),
+                parse(diff2_body)
+            )
+        else:
+            final_exp = DiffExp(
+                parse(diff1_body),
+                parse(diff2_body)
+            )
 
     elif head == LEFT:
         call_body = nextGroup(lexed, RIGHT)
         operator_exp = parse(call_body)  # There is no comma that stops the operator and starts the operand. We let the operator consume as much as it can recognise.
         operand_exp  = parse(call_body)
 
-        final_exp = CallExp(operator_exp, operand_exp)
+        if typed:
+            final_exp = CallExpTyped(operator_exp, operand_exp)
+        else:
+            final_exp = CallExp(operator_exp, operand_exp)
 
     elif head == ZEROTEST:
         lexed.pop(0)  # (
         tested_body = nextGroup(lexed, RIGHT)
 
-        final_exp = IsZeroExp(parse(tested_body))
+        if typed:
+            final_exp = IsZeroExpTyped(parse(tested_body))
+        else:
+            final_exp = IsZeroExp(parse(tested_body))
 
     else:  # Identifier or number
         if head.isnumeric():
-            final_exp = ConstExp(head)
+            if typed:
+                final_exp = ConstExpTyped(head)
+            else:
+                final_exp = ConstExp(head)
         elif head.isidentifier():
-            final_exp = VarExp(head)
+            if typed:
+                final_exp = VarExpTyped(head)
+            else:
+                final_exp = VarExp(head)
         else:
             raise ValueError(f"Weird symbol found: {head}")
 
     return final_exp
 
 
-def parseType(annotation: str) -> Type:
+def parseType(annotation: str) -> Typish:
     """
     We assume type annotations cannot be more than a single token. Hence, something like "int -> bool" isn't a valid
     annotation, but could still be the type of an expression.
@@ -246,4 +271,10 @@ if __name__ == "__main__":
     # """
 
     from printer import *
-    print(expression__repr__(stringToExpression(s)))
+
+    exp = stringToExpression(s)
+    sub = Substitution()
+    prog_type: Type = exp.type_of(EmptyEnvironmentTyped(), sub)
+    print(expression__repr__(exp))
+    print(substitution__repr__(sub))
+    print(type__repr__(sub.applyThisToType(prog_type)))
