@@ -5,9 +5,11 @@ Note: the goal of the course is to implement more powerful programming language 
 implement them. One could object that this Pythonic implementation uses OOP (even polymorphism!), which is highly
 advanced already. However, the EOPL code not only uses Racket's lambda feature, but it uses pattern matching with
 abstract datatypes. That means Racket has a mechanism in place for polymorphism, and hence, it is equally advanced.
+The same goes for dictionaries (lists of 2-tuples), sets (efficient lists that check for occurrence before adding) ...
 
-TODO: I think Java might be an even better language to teach this in. The reason is that you have the OOP and typing
+Note: I think Java might be an even better language to teach this in. The reason is that you have the OOP and typing
       like Python, but you can neglect "self.", which makes the code even cleaner.
+      A downside of Java is that everyone becomes VERY distributed, across many files.
 
 Author: Thomas Bauwens
 Date: 2023-01-06 (took me less than an hour to write this up)
